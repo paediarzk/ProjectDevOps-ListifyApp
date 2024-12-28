@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#FFFFFF</color>
+    <color name="colorPrimaryDark">@android:color/holo_green_dark</color>
+    <color name="colorAccent">#000000</color>
+
+    //Custom
+    <color name="chinese_violet_30">#B1A3B3</color>
+    <color name="chinese_violet">#755E77</color>
+    <color name="sonic_silver">#75777A</color>
+    <color name="old_rose_30">#F0B4B9</color>
+    <color name="ghost_white">#ECEBF5</color>
+    <color name="light_pink">#FFCCD1</color>
+    <color name="light_gray">#CCCCCC</color>
+    <color name="seashell">#F7EDE1</color>
+    <color name="charcoal">#34505C</color>
+
+    <color name="green1">#8c9657</color>
+    <color name="green2">#473f34</color>
+    <color name="green3">#f0e5c7</color>
+
+    <color name="parchment">#f7efda</color>
+    <color name="pistachio">#badd7f</color>
+    <color name="melon">#efaca5</color>
+    <color name="fern">#3e8440</color>
+
+
+
+
+
+</resources>
