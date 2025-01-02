@@ -11,8 +11,6 @@ COPY . .
 RUN chmod +x gradlew
 
 # Menjalankan perintah build aplikasi
-<<<<<<< HEAD
 CMD ["./gradlew", "assembleDebug"]
 =======
 CMD ["./gradlew", "assembleDebug"]
->>>>>>> eee3dad4559d63ce546ef3bc6511d5ed29e4c836
