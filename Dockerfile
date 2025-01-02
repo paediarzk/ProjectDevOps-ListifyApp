@@ -7,6 +7,9 @@ WORKDIR /app
 # copy all project file to container 
 COPY . .
 
+# Berikan izin eksekusi untuk gradlew
+RUN chmod +x ./gradlew
+
 # Instal Gradle wrapper & build app
 RUN ./gradlew assembleDebug
 
