@@ -29,4 +29,4 @@ RUN yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --sdk_root=${ANDRO
     ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --sdk_root=${ANDROID_HOME} "platforms;android-30" "build-tools;30.0.3"
 
 # Membangun aplikasi
-RUN ./gradlew build
+RUN chmod +x ./gradlew && ./gradlew build
