@@ -11,10 +11,13 @@ WORKDIR /app
 # Menyalin semua file proyek ke dalam image
 COPY . .
 
-# Menginstal dependensi yang diperlukan
+# Menginstal dependensi yang diperlukan dan dos2unix untuk memperbaiki masalah line endings
 RUN apt-get update --fix-missing && \
-    apt-get install -y wget unzip && \
+    apt-get install -y wget unzip dos2unix && \
     apt-get clean
+
+# Memperbaiki line endings untuk gradlew dan Dockerfile
+RUN dos2unix gradlew Dockerfile
 
 # Mengunduh dan menginstal Android SDK Command Line Tools
 RUN mkdir -p ${ANDROID_HOME}/cmdline-tools && \
