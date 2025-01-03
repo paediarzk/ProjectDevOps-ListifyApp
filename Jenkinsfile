@@ -18,7 +18,7 @@ pipeline {
         // to runs a container from the image built in the previous stage.
         stage('Run Docker Container') {
             steps {
-                bat 'docker run -d -p 8080 paediarzk/listifyapp'
+                bat 'docker run -d paediarzk/listifyapp'
             }
         }
     }
