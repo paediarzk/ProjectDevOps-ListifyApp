@@ -17,7 +17,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    bat 'docker build -t blog-android:latest . --no-cache'
+                    bat 'docker build -t listifyapp . --no-cache'
                 }
             }
         }
