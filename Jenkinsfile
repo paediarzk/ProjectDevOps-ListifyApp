@@ -81,20 +81,11 @@ pipeline {
     
   // This block defines actions that occur after the pipeline completes, either successfully or with failure. 
      post {
-        always {
-            echo 'Cleaning workspace...'
-            cleanWs()
+        success {
+            echo 'Pipeline executed successfully.'
         }
         failure {
-            script {
-                echo 'Pipeline failed'
-                bat '''
-                    echo "Listing running containers:"
-                    docker ps
-                    echo "Listing all containers:"
-                    docker ps -a
-                '''
-            }
+            echo 'Pipeline failed. Please check the logs for details.'
         }
     }
 }
