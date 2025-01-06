@@ -1,6 +1,6 @@
 pipeline {
     agent any
-
+    
     stages {
         //check or pull the code from git repository
         stage('Checkout') {
@@ -14,14 +14,14 @@ pipeline {
                 bat 'docker build -t listifyapps:1.0.0 . --no-cache'
             }
         }
-
+        
         // to runs a container from the image built in the previous stage.
         stage('Run Docker Container') {
             steps {
                 bat 'docker run -d listifyapps:1.0.0'
             }
         }
-
+        
         // Run Tests
         stage('Run Tests') {
             steps {
@@ -39,7 +39,7 @@ pipeline {
                 }
             }
         }
-
+        
         // Build APK
         stage('Build APK') {
             steps {
@@ -53,7 +53,7 @@ pipeline {
                         listifyapps:1.0.0 ^
                         ./gradlew assembleDebug --info --stacktrace
                     '''
-
+                    
                     // Debug: List directory after build
                     bat '''
                         echo "Listing directory structure:"
@@ -62,7 +62,7 @@ pipeline {
                 }
             }
         }
-
+        
         // Archive APK
         stage('Archive APK') {
             steps {
@@ -80,8 +80,8 @@ pipeline {
             }
         }
     }
-
-    // This block defines actions that occur after the pipeline completes, either successfully or with failure.
+    
+    // This block defines actions that occur after the pipeline completes, either successfully or with failure. 
     post {
         success {
             echo 'Pipeline executed successfully.'

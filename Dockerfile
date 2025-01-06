@@ -11,13 +11,13 @@ WORKDIR /app
 # Menyalin semua file proyek ke dalam image
 COPY . .
 
-# Menginstal dependensi yang diperlukan dan dos2unix untuk memperbaiki masalah line endings
+# Menginstal dependensi yang diperlukan termasuk dos2unix
 RUN apt-get update --fix-missing && \
     apt-get install -y wget unzip dos2unix && \
     apt-get clean
 
-# Memperbaiki line endings untuk gradlew dan Dockerfile
-RUN dos2unix gradlew Dockerfile
+# Mengubah line endings untuk gradlew agar sesuai dengan format UNIX
+RUN dos2unix gradlew
 
 # Mengunduh dan menginstal Android SDK Command Line Tools
 RUN mkdir -p ${ANDROID_HOME}/cmdline-tools && \
@@ -27,9 +27,10 @@ RUN mkdir -p ${ANDROID_HOME}/cmdline-tools && \
     rm commandlinetools-linux-7583922_latest.zip && \
     mv cmdline-tools latest
 
-# Menjalankan sdkmanager untuk menginstal platform dan build-tools
+# Menginstal platform android 30 dan build-tools
 RUN yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --sdk_root=${ANDROID_HOME} --licenses && \
     ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --sdk_root=${ANDROID_HOME} "platforms;android-30" "build-tools;30.0.3"
 
-# Membangun aplikasi
+# Menjalankan gradlew untuk membangun aplikasi
+RUN chmod +x gradlew
 RUN ./gradlew build
