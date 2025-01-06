@@ -21,9 +21,9 @@ pipeline {
                 bat 'docker run -d listifyapps:1.0.0'
             }
         }
-    }
-
-     stage('Run Tests') {
+        
+        // Run Tests
+        stage('Run Tests') {
             steps {
                 script {
                     bat '''
@@ -40,6 +40,7 @@ pipeline {
             }
         }
         
+        // Build APK
         stage('Build APK') {
             steps {
                 script {
@@ -49,11 +50,11 @@ pipeline {
                         -v "%CD%":/app ^
                         -v "%CD%/.gradle:/root/.gradle" ^
                         -w /app ^
-                         listifyapps:1.0.0 ^
+                        listifyapps:1.0.0 ^
                         ./gradlew assembleDebug --info --stacktrace
                     '''
                     
-                    // Debug: List direktori setelah build
+                    // Debug: List directory after build
                     bat '''
                         echo "Listing directory structure:"
                         dir /s
@@ -62,6 +63,7 @@ pipeline {
             }
         }
         
+        // Archive APK
         stage('Archive APK') {
             steps {
                 script {
@@ -79,8 +81,8 @@ pipeline {
         }
     }
     
-  // This block defines actions that occur after the pipeline completes, either successfully or with failure. 
-     post {
+    // This block defines actions that occur after the pipeline completes, either successfully or with failure. 
+    post {
         success {
             echo 'Pipeline executed successfully.'
         }
