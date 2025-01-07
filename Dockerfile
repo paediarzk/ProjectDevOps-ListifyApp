@@ -39,9 +39,8 @@ RUN mkdir -p /root/.gradle && chmod -R 777 /root/.gradle
 # Menyalin semua file aplikasi ke dalam direktori kerja
 COPY . .
 
-# Mengonversi semua skrip shell agar sesuai dengan format Unix (LF)
-RUN find . -type f -name "*.sh" -exec dos2unix {} \; && \
-    dos2unix gradlew gradlew.bat
+# Mengonversi semua skrip dan file teks agar sesuai dengan format Unix (LF)
+RUN find . -type f -exec dos2unix {} \;
 
 # Memastikan gradlew dapat dieksekusi
 RUN chmod +x gradlew
