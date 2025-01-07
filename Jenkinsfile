@@ -17,6 +17,8 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
+                    // Ensure gradlew has correct permissions before building
+                    bat 'git update-index --chmod=+x gradlew'
                     bat 'docker build -t listifyapps:1.0.0 . --no-cache'
                 }
             }
