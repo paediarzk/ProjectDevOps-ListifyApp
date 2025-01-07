@@ -4,7 +4,8 @@ FROM eclipse-temurin:17-jdk
 RUN apt-get update && apt-get install -y \
     curl \
     unzip \
-    gradle
+    gradle \
+    dos2unix
 
 # Install Android SDK
 ENV ANDROID_HOME=/opt/android-sdk \
@@ -32,14 +33,15 @@ WORKDIR /app
 # Copy the project files
 COPY . .
 
+# Convert line endings and make gradlew executable
+RUN dos2unix gradlew && \
+    chmod +x gradlew
+
 # Set up Gradle
 RUN mkdir -p /root/.gradle && \
     chmod -R 777 /root/.gradle && \
     mkdir -p .gradle && \
     chmod -R 777 .gradle
-
-# Make gradlew executable
-RUN chmod +x gradlew
 
 ENTRYPOINT ["./gradlew"]
 CMD ["assembleDebug"]
