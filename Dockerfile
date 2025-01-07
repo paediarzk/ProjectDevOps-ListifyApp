@@ -17,10 +17,15 @@ ENV PATH=${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools
 WORKDIR /app
 
 # Mengunduh dan menginstal Android SDK Command Line Tools
-RUN mkdir -p ${ANDROID_HOME}/cmdline-tools/latest && \
-    wget https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip -O /tmp/cmdline-tools.zip && \
-    unzip /tmp/cmdline-tools.zip -d ${ANDROID_HOME}/cmdline-tools/latest && \
+RUN mkdir -p ${ANDROID_HOME}/cmdline-tools && \
+    wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O /tmp/cmdline-tools.zip && \
+    unzip /tmp/cmdline-tools.zip -d ${ANDROID_HOME}/cmdline-tools && \
+    mkdir -p ${ANDROID_HOME}/cmdline-tools/latest && \
+    mv ${ANDROID_HOME}/cmdline-tools/cmdline-tools/* ${ANDROID_HOME}/cmdline-tools/latest && \
     rm /tmp/cmdline-tools.zip
+
+# Menambah sdkmanager ke path
+ENV PATH=${ANDROID_HOME}/cmdline-tools/latest/bin:${PATH}
 
 # Accept licenses
 RUN yes | sdkmanager --licenses
@@ -38,4 +43,4 @@ COPY . .
 RUN chmod +x gradlew
 
 # Menjalankan perintah build Gradle untuk membangun APK
-CMD ./gradlew assembleDebug --info --stacktrace
+CMD ["./gradlew", "assembleDebug", "--info", "--stacktrace"]
