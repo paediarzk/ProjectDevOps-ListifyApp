@@ -1,5 +1,5 @@
 # Base image with OpenJDK (required for Gradle and Android builds)
-FROM openjdk:11-jdk-slim
+FROM openjdk:17-jdk-slim
 
 # Set the working directory inside the container
 WORKDIR /app
