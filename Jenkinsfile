@@ -10,14 +10,14 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
-                bat 'dir'  // Debug: list files
+                sh 'ls -la'  // Debug: list files
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    bat 'docker build -t listifyapps:1.0.0 . --no-cache'
+                    sh 'docker build -t listifyapps:1.0.0 . --no-cache'
                 }
             }
         }
@@ -25,14 +25,14 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    bat '''
+                    sh '''
                         echo "Current directory:"
-                        dir
+                        ls -la
                         echo "Running tests..."
-                        docker run --rm ^
-                        -v "%CD%:/app" ^
-                        -w /app ^
-                        listifyapps:1.0.0 ^
+                        docker run --rm \
+                        -v "${WORKSPACE}:/app" \
+                        -w /app \
+                        listifyapps:1.0.0 \
                         test --stacktrace
                     '''
                 }
@@ -42,20 +42,20 @@ pipeline {
         stage('Build APK') {
             steps {
                 script {
-                    bat '''
+                    sh '''
                         echo "Building APK..."
-                        docker run --rm ^
-                        -v "%CD%:/app" ^
-                        -v "%CD%\\.gradle:/.gradle" ^
-                        -w /app ^
-                        listifyapps:1.0.0 ^
+                        docker run --rm \
+                        -v "${WORKSPACE}:/app" \
+                        -v "${WORKSPACE}/.gradle:/.gradle" \
+                        -w /app \
+                        listifyapps:1.0.0 \
                         assembleDebug --info --stacktrace
                     '''
 
                     // Debug: List directory after build
-                    bat '''
+                    sh '''
                         echo "Listing directory structure:"
-                        dir /s
+                        find . -type f -name "*.apk"
                     '''
                 }
             }
@@ -64,9 +64,9 @@ pipeline {
         stage('Archive APK') {
             steps {
                 script {
-                    bat '''
+                    sh '''
                         echo "Checking for APK files..."
-                        dir /s *.apk
+                        find . -name "*.apk"
                     '''
                     archiveArtifacts(
                         artifacts: '**/*.apk',
@@ -86,7 +86,7 @@ pipeline {
         failure {
             script {
                 echo 'Pipeline failed'
-                bat '''
+                sh '''
                     echo "Listing running containers:"
                     docker ps
                     echo "Listing all containers:"
