@@ -1,29 +1,27 @@
 pipeline {
     agent any
     
+    environment {
+        DOCKER_IMAGE = 'listifyapps'
+        DOCKER_TAG = '1.0.0'
+    }
+    
     stages {
-        // Checkout code from Git repository
         stage('Checkout') {
             steps {
-                git branch: 'feature-crud', url: 'https://github.com/paediarzk/ProjectDevOps-ListifyApp.git'
+                checkout scm
+                bat 'dir'  // Debug: list files
             }
         }
-
-        // Build Docker Image
+        
         stage('Build Docker Image') {
             steps {
-                bat 'docker build -t listifyapps:1.0.0 . --no-cache'
+                script {
+                    bat 'docker build -t listifyapps:1.0.0 . --no-cache'
+                }
             }
         }
         
-        // Run Docker Container
-        stage('Run Docker Container') {
-            steps {
-                bat 'docker run -d listifyapps:1.0.0'
-            }
-        }
-        
-        // Run Tests
         stage('Run Tests') {
             steps {
                 script {
@@ -34,13 +32,13 @@ pipeline {
                         docker run --rm ^
                         -v "%CD%":/app ^
                         -w /app ^
-                        listifyapps:1.0.0 bash -c "./gradlew test --stacktrace"
+                        listifyapps:1.0.0 ^
+                        ./gradlew test --stacktrace
                     '''
                 }
             }
         }
         
-        // Build APK
         stage('Build APK') {
             steps {
                 script {
@@ -50,7 +48,8 @@ pipeline {
                         -v "%CD%":/app ^
                         -v "%CD%/.gradle:/root/.gradle" ^
                         -w /app ^
-                        listifyapps:1.0.0 bash -c "./gradlew assembleDebug --info --stacktrace"
+                        listifyapps:1.0.0 ^
+                        ./gradlew assembleDebug --info --stacktrace
                     '''
                     
                     // Debug: List directory after build
@@ -62,7 +61,6 @@ pipeline {
             }
         }
         
-        // Archive APK
         stage('Archive APK') {
             steps {
                 script {
@@ -80,13 +78,21 @@ pipeline {
         }
     }
     
-    // Post actions after pipeline completion
     post {
-        success {
-            echo 'Pipeline executed successfully.'
+        always {
+            echo 'Cleaning workspace...'
+            cleanWs()
         }
         failure {
-            echo 'Pipeline failed. Please check the logs for details.'
+            script {
+                echo 'Pipeline failed'
+                bat '''
+                    echo "Listing running containers:"
+                    docker ps
+                    echo "Listing all containers:"
+                    docker ps -a
+                '''
+            }
         }
     }
 }
