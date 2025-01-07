@@ -2,20 +2,21 @@ pipeline {
     agent any
     
     stages {
-        //check or pull the code from git repository
+        // Checkout code from Git repository
         stage('Checkout') {
             steps {
                 git branch: 'feature-crud', url: 'https://github.com/paediarzk/ProjectDevOps-ListifyApp.git'
             }
         }
-        // to builds a docker image
+
+        // Build Docker Image
         stage('Build Docker Image') {
             steps {
                 bat 'docker build -t listifyapps:1.0.0 . --no-cache'
             }
         }
         
-        // to runs a container from the image built in the previous stage.
+        // Run Docker Container
         stage('Run Docker Container') {
             steps {
                 bat 'docker run -d listifyapps:1.0.0'
@@ -33,8 +34,7 @@ pipeline {
                         docker run --rm ^
                         -v "%CD%":/app ^
                         -w /app ^
-                        listifyapps:1.0.0 ^
-                        ./gradlew test --stacktrace
+                        listifyapps:1.0.0 bash -c "./gradlew test --stacktrace"
                     '''
                 }
             }
@@ -50,8 +50,7 @@ pipeline {
                         -v "%CD%":/app ^
                         -v "%CD%/.gradle:/root/.gradle" ^
                         -w /app ^
-                        listifyapps:1.0.0 ^
-                        ./gradlew assembleDebug --info --stacktrace
+                        listifyapps:1.0.0 bash -c "./gradlew assembleDebug --info --stacktrace"
                     '''
                     
                     // Debug: List directory after build
@@ -81,7 +80,7 @@ pipeline {
         }
     }
     
-    // This block defines actions that occur after the pipeline completes, either successfully or with failure. 
+    // Post actions after pipeline completion
     post {
         success {
             echo 'Pipeline executed successfully.'
