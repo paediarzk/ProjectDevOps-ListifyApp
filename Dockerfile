@@ -10,25 +10,27 @@ RUN apt-get update && apt-get install -y \
 
 # Mengatur variabel lingkungan untuk Android SDK
 ENV ANDROID_HOME=/root/Android/Sdk
-ENV PATH=${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:${PATH}
+    ANDROID_SDK_URL=https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
 
-# Mengatur direktori kerja
-WORKDIR /app
 
 # Mengunduh dan menginstal Android SDK Command Line Tools
 RUN mkdir -p ${ANDROID_HOME}/cmdline-tools && \
     cd ${ANDROID_HOME}/cmdline-tools && \
-    wget https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip && \
-    unzip commandlinetools-linux-7583922_latest.zip && \
-    mkdir latest && \
+    curl -sSL ${ANDROID_SDK_URL} -o android_tools.zip && \
+    unzip android_tools.zip && \
     mv cmdline-tools latest && \
-    rm commandlinetools-linux-7583922_latest.zip
+    rm android_tools.zip
+
+ENV PATH=${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:${PATH}
 
 # Accept licenses
 RUN yes | sdkmanager --licenses
 
 # Install required Android packages
 RUN sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+
+# Mengatur direktori kerja
+WORKDIR /app
 
 # Menyiapkan direktori gradle
 RUN mkdir -p /root/.gradle && \
