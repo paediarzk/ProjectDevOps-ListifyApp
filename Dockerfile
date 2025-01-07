@@ -40,7 +40,7 @@ RUN mkdir -p /root/.gradle && chmod -R 777 /root/.gradle
 COPY . .
 
 # Mengonversi gradlew agar sesuai dengan format Unix
-RUN dos2unix gradlew
+RUN dos2unix gradlew gradlew.bat
 
 # Memastikan gradlew dapat dieksekusi
 RUN chmod +x gradlew
