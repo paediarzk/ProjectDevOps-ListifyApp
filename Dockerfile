@@ -42,8 +42,6 @@ RUN find . -type f \( -name "*.sh" -o -name "gradlew" -o -name "gradlew.bat" \) 
 # Menyalin semua file aplikasi ke dalam direktori kerja
 COPY . .
 
-# Mengonversi semua skrip dan file teks agar sesuai dengan format Unix (LF)
-RUN find . -type f -exec dos2unix {} \;
 
 # Memastikan gradlew dapat dieksekusi
 RUN chmod +x gradlew
