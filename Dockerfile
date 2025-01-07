@@ -1,40 +1,41 @@
-# Base image with OpenJDK (required for Gradle and Android builds)
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk
 
-# Set the working directory inside the container
-WORKDIR /app
-
-# Copy all files from the current directory to the container
-COPY . .
-
-# Grant execute permissions to the Gradle wrapper
-RUN chmod +x gradlew
-
-# Install additional dependencies
+# Install required packages
 RUN apt-get update && apt-get install -y \
-    wget \
+    curl \
     unzip \
-    && apt-get clean
+    gradle
 
-# Download and set up Android SDK Command-line Tools
-RUN mkdir -p /usr/local/android-sdk && \
-    wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O /tmp/cmdline-tools.zip && \
-    unzip -q /tmp/cmdline-tools.zip -d /usr/local/android-sdk && \
-    mv /usr/local/android-sdk/cmdline-tools /usr/local/android-sdk/tools && \
-    rm /tmp/cmdline-tools.zip
+# Install Android SDK
+ENV ANDROID_HOME=/opt/android-sdk \
+    ANDROID_SDK_URL=https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
 
-# Set environment variables for Android SDK
-ENV ANDROID_HOME=/usr/local/android-sdk
-ENV PATH="$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$PATH"
+# Download and setup Android SDK
+RUN mkdir -p ${ANDROID_HOME}/cmdline-tools && \
+    cd ${ANDROID_HOME}/cmdline-tools && \
+    curl -sSL ${ANDROID_SDK_URL} -o android_tools.zip && \
+    unzip android_tools.zip && \
+    mv cmdline-tools latest && \
+    rm android_tools.zip
 
-# Accept Android SDK licenses
+# Set PATH
+ENV PATH=${PATH}:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools
+
+# Accept licenses
 RUN yes | sdkmanager --licenses
 
-# Install required SDK components (modify as needed)
-RUN sdkmanager \
-    "platform-tools" \
-    "platforms;android-33" \
-    "build-tools;33.0.2"
+# Install required Android packages
+RUN sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
-# Default entry point for Gradle commands
-ENTRYPOINT ["./gradlew"]
+WORKDIR /app
+
+RUN mkdir -p /root/.gradle && \
+    chmod -R 777 /root/.gradle
+
+# Make gradlew executable
+RUN mkdir -p .gradle && \
+    chmod -R 777 .gradle
+
+RUN chmod +x ./gradlew || true
+
+CMD ["./gradlew", "assembleDebug"]

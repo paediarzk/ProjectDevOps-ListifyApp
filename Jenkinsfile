@@ -9,31 +9,15 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                echo 'Checking out the source code...'
                 checkout scm
-                bat 'dir' // Debug: List files in workspace
-            }
-        }
-
-        stage('Fix Line Endings') {
-            steps {
-                script {
-                    echo 'Fixing line endings for gradlew...'
-                    // Replace Windows-style line endings (CRLF) with Unix-style (LF)
-                    bat '''
-                        powershell -Command "(Get-Content gradlew) -replace '\\r', '' | Set-Content gradlew"
-                    '''
-                }
+                bat 'dir'  // Debug: list files
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    echo 'Building Docker image...'
-                    bat '''
-                        docker build -t %DOCKER_IMAGE%:%DOCKER_TAG% . --no-cache
-                    '''
+                    bat 'docker build -t listifyapps:1.0.0 . --no-cache'
                 }
             }
         }
@@ -41,12 +25,14 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    echo 'Running tests inside Docker container...'
                     bat '''
+                        echo "Current directory:"
+                        dir
+                        echo "Running tests..."
                         docker run --rm ^
                         -v "%CD%":/app ^
                         -w /app ^
-                        %DOCKER_IMAGE%:%DOCKER_TAG% ^
+                        listifyapps:1.0.0 ^
                         ./gradlew test --stacktrace
                     '''
                 }
@@ -56,19 +42,19 @@ pipeline {
         stage('Build APK') {
             steps {
                 script {
-                    echo 'Building APK file...'
                     bat '''
+                        echo "Building APK..."
                         docker run --rm ^
                         -v "%CD%":/app ^
                         -v "%CD%/.gradle:/root/.gradle" ^
                         -w /app ^
-                        %DOCKER_IMAGE%:%DOCKER_TAG% ^
+                        listifyapps:1.0.0 ^
                         ./gradlew assembleDebug --info --stacktrace
                     '''
 
                     // Debug: List directory after build
                     bat '''
-                        echo "Listing directory structure..."
+                        echo "Listing directory structure:"
                         dir /s
                     '''
                 }
@@ -78,9 +64,8 @@ pipeline {
         stage('Archive APK') {
             steps {
                 script {
-                    echo 'Archiving APK files...'
                     bat '''
-                        echo "Searching for APK files..."
+                        echo "Checking for APK files..."
                         dir /s *.apk
                     '''
                     archiveArtifacts(
@@ -95,20 +80,19 @@ pipeline {
 
     post {
         always {
-            echo 'Cleaning up workspace...'
+            echo 'Cleaning workspace...'
             cleanWs()
         }
-        success {
-            echo 'Pipeline executed successfully!'
-        }
         failure {
-            echo 'Pipeline failed. Gathering logs for debugging...'
-            bat '''
-                echo "Listing running containers:"
-                docker ps
-                echo "Listing all containers:"
-                docker ps -a
-            '''
+            script {
+                echo 'Pipeline failed'
+                bat '''
+                    echo "Listing running containers:"
+                    docker ps
+                    echo "Listing all containers:"
+                    docker ps -a
+                '''
+            }
         }
     }
 }
