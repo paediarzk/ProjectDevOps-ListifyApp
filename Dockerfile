@@ -1,31 +1,25 @@
-# Menggunakan image openjdk 17
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk
 
-# Install dependencies
+# Install required packages
 RUN apt-get update && apt-get install -y \
     curl \
-    wget \
     unzip \
-    gradle \
-    dos2unix
+    gradle
 
-# Mengatur variabel lingkungan untuk Android SDK
-ENV ANDROID_HOME=/root/Android/Sdk
-ENV PATH=${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:${PATH}
+# Install Android SDK
+ENV ANDROID_HOME=/opt/android-sdk \
+    ANDROID_SDK_URL=https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
 
-# Mengatur direktori kerja
-WORKDIR /app
-
-# Mengunduh dan menginstal Android SDK Command Line Tools
+# Download and setup Android SDK
 RUN mkdir -p ${ANDROID_HOME}/cmdline-tools && \
-    wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O /tmp/cmdline-tools.zip && \
-    unzip /tmp/cmdline-tools.zip -d ${ANDROID_HOME}/cmdline-tools && \
-    mkdir -p ${ANDROID_HOME}/cmdline-tools/latest && \
-    mv ${ANDROID_HOME}/cmdline-tools/cmdline-tools/* ${ANDROID_HOME}/cmdline-tools/latest && \
-    rm /tmp/cmdline-tools.zip
+    cd ${ANDROID_HOME}/cmdline-tools && \
+    curl -sSL ${ANDROID_SDK_URL} -o android_tools.zip && \
+    unzip android_tools.zip && \
+    mv cmdline-tools latest && \
+    rm android_tools.zip
 
-# Menambah sdkmanager ke path
-ENV PATH=${ANDROID_HOME}/cmdline-tools/latest/bin:${PATH}
+# Set PATH
+ENV PATH=${PATH}:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools
 
 # Accept licenses
 RUN yes | sdkmanager --licenses
@@ -33,18 +27,15 @@ RUN yes | sdkmanager --licenses
 # Install required Android packages
 RUN sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
-# Menyiapkan direktori Gradle untuk cache
-RUN mkdir -p /root/.gradle && chmod -R 777 /root/.gradle
+WORKDIR /app
 
-# Mengonversi semua skrip shell agar sesuai dengan format Unix (LF)
-RUN find . -type f \( -name "*.sh" -o -name "gradlew" -o -name "gradlew.bat" \) -exec dos2unix {} \;
+RUN mkdir -p /root/.gradle && \
+    chmod -R 777 /root/.gradle
 
-# Menyalin semua file aplikasi ke dalam direktori kerja
-COPY . .
+# Make gradlew executable
+RUN mkdir -p .gradle && \
+    chmod -R 777 .gradle
 
+RUN chmod +x ./gradlew || true
 
-# Memastikan gradlew dapat dieksekusi
-RUN chmod +x gradlew
-
-# Menjalankan perintah build Gradle untuk membangun APK
-CMD ["./gradlew", "assembleDebug", "--info", "--stacktrace"]
+CMD ["./gradlew", "assembleDebug"]
