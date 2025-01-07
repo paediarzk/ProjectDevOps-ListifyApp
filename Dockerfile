@@ -36,14 +36,21 @@ RUN mkdir -p /root/.gradle && \
     mkdir -p /.gradle && \
     chmod -R 777 /.gradle
 
-# Create a directory for the gradlew script
-RUN mkdir -p /scripts && \
-    chmod -R 777 /scripts
+# Add a script to handle gradle commands
+RUN echo '#!/bin/bash\n\
+if [ -f "./gradlew" ]; then\n\
+    cp ./gradlew ./gradlew.original\n\
+    dos2unix ./gradlew\n\
+    chmod +x ./gradlew\n\
+    ./gradlew "$@"\n\
+    EXIT_CODE=$?\n\
+    mv ./gradlew.original ./gradlew\n\
+    exit $EXIT_CODE\n\
+else\n\
+    echo "gradlew not found"\n\
+    exit 1\n\
+fi' > /usr/local/bin/run-gradle.sh && \
+    chmod +x /usr/local/bin/run-gradle.sh
 
-# Copy gradlew to a temporary location and fix permissions
-COPY gradlew /scripts/
-RUN dos2unix /scripts/gradlew && \
-    chmod +x /scripts/gradlew
-
-ENTRYPOINT ["/bin/bash", "-c"]
-CMD ["cp /scripts/gradlew . && ./gradlew assembleDebug"]
+ENTRYPOINT ["/usr/local/bin/run-gradle.sh"]
+CMD ["assembleDebug"]
