@@ -38,4 +38,4 @@ RUN mkdir -p .gradle && \
 
 RUN chmod +x ./gradlew || true
 
-CMD ["./gradlew", "assembleDebug"]
+CMD ["./gradlew", "assembleDebug"].
