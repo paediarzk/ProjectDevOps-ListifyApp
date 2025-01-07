@@ -36,6 +36,9 @@ RUN sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 # Menyiapkan direktori Gradle untuk cache
 RUN mkdir -p /root/.gradle && chmod -R 777 /root/.gradle
 
+# Mengonversi semua skrip shell agar sesuai dengan format Unix (LF)
+RUN find . -type f \( -name "*.sh" -o -name "gradlew" -o -name "gradlew.bat" \) -exec dos2unix {} \;
+
 # Menyalin semua file aplikasi ke dalam direktori kerja
 COPY . .
 
