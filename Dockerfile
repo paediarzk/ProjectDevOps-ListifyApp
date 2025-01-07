@@ -33,12 +33,10 @@ WORKDIR /app
 RUN mkdir -p /root/.gradle && \
     chmod -R 777 /root/.gradle
 
-# Make gradlew executable and fix line endings
-COPY gradlew ./
-RUN dos2unix gradlew && \
-    chmod +x gradlew
-
+# Create .gradle directory with proper permissions
 RUN mkdir -p .gradle && \
     chmod -R 777 .gradle
 
-CMD ["./gradlew", "assembleDebug"]
+# We'll copy and fix gradlew at runtime
+ENTRYPOINT ["/bin/bash", "-c"]
+CMD ["dos2unix ./gradlew && chmod +x ./gradlew && ./gradlew assembleDebug"]

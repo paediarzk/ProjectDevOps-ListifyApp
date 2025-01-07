@@ -17,8 +17,6 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Ensure gradlew has correct permissions before building
-                    bat 'git update-index --chmod=+x gradlew'
                     bat 'docker build -t listifyapps:1.0.0 . --no-cache'
                 }
             }
@@ -32,10 +30,10 @@ pipeline {
                         dir
                         echo "Running tests..."
                         docker run --rm ^
-                        -v "%CD%":/app ^
+                        -v "%CD%:/app" ^
                         -w /app ^
                         listifyapps:1.0.0 ^
-                        ./gradlew test --stacktrace
+                        "dos2unix ./gradlew && chmod +x ./gradlew && ./gradlew test --stacktrace"
                     '''
                 }
             }
@@ -47,11 +45,11 @@ pipeline {
                     bat '''
                         echo "Building APK..."
                         docker run --rm ^
-                        -v "%CD%":/app ^
-                        -v "%CD%/.gradle:/root/.gradle" ^
+                        -v "%CD%:/app" ^
+                        -v "%CD%\\.gradle:/root/.gradle" ^
                         -w /app ^
                         listifyapps:1.0.0 ^
-                        ./gradlew assembleDebug --info --stacktrace
+                        "dos2unix ./gradlew && chmod +x ./gradlew && ./gradlew assembleDebug --info --stacktrace"
                     '''
 
                     // Debug: List directory after build
