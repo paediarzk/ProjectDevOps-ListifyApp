@@ -1,40 +1,41 @@
-# Gunakan image dasar OpenJDK 17
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk
 
-# Tetapkan direktori kerja di dalam container
-WORKDIR /app
-
-# Salin semua file dari host ke container
-COPY . .
-
-# Pastikan file gradlew memiliki izin eksekusi
-RUN chmod +x gradlew || true
-
-# Instal dependensi tambahan yang diperlukan
+# Install required packages
 RUN apt-get update && apt-get install -y \
-    wget \
+    curl \
     unzip \
-    && apt-get clean
+    gradle
 
-# Unduh dan instal Android SDK Command-line Tools
-RUN mkdir -p /usr/local/android-sdk && \
-    wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O /tmp/cmdline-tools.zip && \
-    unzip -q /tmp/cmdline-tools.zip -d /usr/local/android-sdk && \
-    mv /usr/local/android-sdk/cmdline-tools /usr/local/android-sdk/tools && \
-    rm /tmp/cmdline-tools.zip
+# Install Android SDK
+ENV ANDROID_HOME=/opt/android-sdk \
+    ANDROID_SDK_URL=https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
 
-# Atur variabel lingkungan untuk Android SDK
-ENV ANDROID_HOME=/usr/local/android-sdk
-ENV PATH="$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$PATH"
+# Download and setup Android SDK
+RUN mkdir -p ${ANDROID_HOME}/cmdline-tools && \
+    cd ${ANDROID_HOME}/cmdline-tools && \
+    curl -sSL ${ANDROID_SDK_URL} -o android_tools.zip && \
+    unzip android_tools.zip && \
+    mv cmdline-tools latest && \
+    rm android_tools.zip
 
-# Terima semua lisensi Android SDK
+# Set PATH
+ENV PATH=${PATH}:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools
+
+# Accept licenses
 RUN yes | sdkmanager --licenses
 
-# Instal komponen Android SDK yang diperlukan
-RUN sdkmanager \
-    "platform-tools" \
-    "platforms;android-33" \
-    "build-tools;33.0.2"
+# Install required Android packages
+RUN sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
-# Tetapkan entrypoint default untuk menjalankan Gradle
-ENTRYPOINT ["./gradlew"]
+WORKDIR /app
+
+RUN mkdir -p /root/.gradle && \
+    chmod -R 777 /root/.gradle
+
+# Make gradlew executable
+RUN mkdir -p .gradle && \
+    chmod -R 777 .gradle
+
+RUN chmod +x ./gradlew || true
+
+CMD ["./gradlew", "assembleDebug"]
