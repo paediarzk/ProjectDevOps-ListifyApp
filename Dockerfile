@@ -1,6 +1,14 @@
 # Menggunakan image openjdk 17
 FROM openjdk:17-jdk-slim
 
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    unzip \
+    gradle \
+    dos2unix
+
 # Mengatur variabel lingkungan untuk Android SDK
 ENV ANDROID_HOME=/root/Android/Sdk
 ENV PATH=${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:${PATH}
@@ -8,28 +16,26 @@ ENV PATH=${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools
 # Mengatur direktori kerja
 WORKDIR /app
 
-# Menyalin semua file proyek ke dalam image
+# Mengunduh dan menginstal Android SDK Command Line Tools
+RUN mkdir -p ${ANDROID_HOME}/cmdline-tools/latest && \
+    wget https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip -O /tmp/cmdline-tools.zip && \
+    unzip /tmp/cmdline-tools.zip -d ${ANDROID_HOME}/cmdline-tools/latest && \
+    rm /tmp/cmdline-tools.zip
+
+# Accept licenses
+RUN yes | sdkmanager --licenses
+
+# Install required Android packages
+RUN sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+
+# Menyiapkan direktori Gradle untuk cache
+RUN mkdir -p /root/.gradle && chmod -R 777 /root/.gradle
+
+# Menyalin semua file aplikasi ke dalam direktori kerja
 COPY . .
 
-# Menginstal dependensi yang diperlukan dan dos2unix untuk memperbaiki masalah line endings
-RUN apt-get update --fix-missing && \
-    apt-get install -y wget unzip dos2unix && \
-    apt-get clean
+# Memastikan gradlew dapat dieksekusi
+RUN chmod +x gradlew
 
-# Memperbaiki line endings untuk gradlew dan Dockerfile
-RUN dos2unix gradlew Dockerfile
-
-# Mengunduh dan menginstal Android SDK Command Line Tools
-RUN mkdir -p ${ANDROID_HOME}/cmdline-tools && \
-    cd ${ANDROID_HOME}/cmdline-tools && \
-    wget https://dl.google.com/android/repository/commandlinetools-linux-7583922_latest.zip && \
-    unzip commandlinetools-linux-7583922_latest.zip && \
-    rm commandlinetools-linux-7583922_latest.zip && \
-    mv cmdline-tools latest
-
-# Menjalankan sdkmanager untuk menginstal platform dan build-tools
-RUN yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --sdk_root=${ANDROID_HOME} --licenses && \
-    ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --sdk_root=${ANDROID_HOME} "platforms;android-30" "build-tools;30.0.3"
-
-# Membangun aplikasi
-RUN ./gradlew build
+# Menjalankan perintah build Gradle untuk membangun APK
+CMD ./gradlew assembleDebug --info --stacktrace
