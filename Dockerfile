@@ -30,13 +30,20 @@ RUN sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
 WORKDIR /app
 
+# Setup Gradle directories with proper permissions
 RUN mkdir -p /root/.gradle && \
-    chmod -R 777 /root/.gradle
+    chmod -R 777 /root/.gradle && \
+    mkdir -p /.gradle && \
+    chmod -R 777 /.gradle
 
-# Create .gradle directory with proper permissions
-RUN mkdir -p .gradle && \
-    chmod -R 777 .gradle
+# Create a directory for the gradlew script
+RUN mkdir -p /scripts && \
+    chmod -R 777 /scripts
 
-# We'll copy and fix gradlew at runtime
+# Copy gradlew to a temporary location and fix permissions
+COPY gradlew /scripts/
+RUN dos2unix /scripts/gradlew && \
+    chmod +x /scripts/gradlew
+
 ENTRYPOINT ["/bin/bash", "-c"]
-CMD ["dos2unix ./gradlew && chmod +x ./gradlew && ./gradlew assembleDebug"]
+CMD ["cp /scripts/gradlew . && ./gradlew assembleDebug"]

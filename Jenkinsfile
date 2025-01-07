@@ -14,6 +14,16 @@ pipeline {
             }
         }
 
+        stage('Prepare Gradle') {
+            steps {
+                script {
+                    // Ensure the gradle wrapper files are executable
+                    bat 'attrib -R gradlew'
+                    bat 'attrib -R gradlew.bat'
+                }
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 script {
@@ -33,7 +43,7 @@ pipeline {
                         -v "%CD%:/app" ^
                         -w /app ^
                         listifyapps:1.0.0 ^
-                        "dos2unix ./gradlew && chmod +x ./gradlew && ./gradlew test --stacktrace"
+                        "./gradlew test --stacktrace"
                     '''
                 }
             }
@@ -46,10 +56,10 @@ pipeline {
                         echo "Building APK..."
                         docker run --rm ^
                         -v "%CD%:/app" ^
-                        -v "%CD%\\.gradle:/root/.gradle" ^
+                        -v "%CD%\\.gradle:/.gradle" ^
                         -w /app ^
                         listifyapps:1.0.0 ^
-                        "dos2unix ./gradlew && chmod +x ./gradlew && ./gradlew assembleDebug --info --stacktrace"
+                        "./gradlew assembleDebug --info --stacktrace"
                     '''
 
                     // Debug: List directory after build
