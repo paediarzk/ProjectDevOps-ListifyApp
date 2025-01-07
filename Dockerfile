@@ -29,13 +29,17 @@ RUN sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
 WORKDIR /app
 
-RUN mkdir -p /root/.gradle && \
-    chmod -R 777 /root/.gradle
+# Copy the project files
+COPY . .
 
-# Make gradlew executable
-RUN mkdir -p .gradle && \
+# Set up Gradle
+RUN mkdir -p /root/.gradle && \
+    chmod -R 777 /root/.gradle && \
+    mkdir -p .gradle && \
     chmod -R 777 .gradle
 
-RUN chmod +x ./gradlew || true
+# Make gradlew executable
+RUN chmod +x gradlew
 
-CMD ["./gradlew", "assembleDebug"]
+ENTRYPOINT ["./gradlew"]
+CMD ["assembleDebug"]

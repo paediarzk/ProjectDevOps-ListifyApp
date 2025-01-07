@@ -10,7 +10,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
-                bat 'dir'  // Windows equivalent of ls -la
+                bat 'dir'
             }
         }
 
@@ -26,14 +26,12 @@ pipeline {
             steps {
                 script {
                     bat '''
-                        echo "Current directory:"
-                        dir
                         echo "Running tests..."
                         docker run --rm ^
                         -v "%WORKSPACE%:/app" ^
                         -w /app ^
                         listifyapps:1.0.0 ^
-                        test --stacktrace
+                        test
                     '''
                 }
             }
@@ -48,11 +46,9 @@ pipeline {
                         -v "%WORKSPACE%:/app" ^
                         -v "%WORKSPACE%\\.gradle:/.gradle" ^
                         -w /app ^
-                        listifyapps:1.0.0 ^
-                        assembleDebug --info --stacktrace
+                        listifyapps:1.0.0
                     '''
 
-                    // Debug: List directory after build
                     bat 'dir /s /b *.apk'
                 }
             }
@@ -61,9 +57,8 @@ pipeline {
         stage('Archive APK') {
             steps {
                 script {
-                    bat 'dir /s /b *.apk'
                     archiveArtifacts(
-                        artifacts: '**/*.apk',
+                        artifacts: '**/app/build/outputs/apk/debug/*.apk',
                         fingerprint: true,
                         allowEmptyArchive: false
                     )
@@ -74,18 +69,12 @@ pipeline {
 
     post {
         always {
-            echo 'Cleaning workspace...'
             cleanWs()
         }
         failure {
             script {
                 echo 'Pipeline failed'
-                bat '''
-                    echo "Listing running containers:"
-                    docker ps
-                    echo "Listing all containers:"
-                    docker ps -a
-                '''
+                bat 'docker ps -a'
             }
         }
     }
