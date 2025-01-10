@@ -1,11 +1,13 @@
 pipeline {
     agent any
 
+     // Define environment variables for Docker image name and tag.
     environment {
         DOCKER_IMAGE = 'listifyapps'
         DOCKER_TAG = '1.0.0'
     }
 
+    // Stage 1: Check out the source code.
     stages {
         stage('Checkout') {
             steps {
@@ -14,6 +16,7 @@ pipeline {
             }
         }
 
+        // Stage 2: Build the Docker image.
         stage('Build Docker Image') {
             steps {
                 script {
@@ -22,6 +25,7 @@ pipeline {
             }
         }
 
+        // Stage 3: Run tests inside the Docker container.
         stage('Run Tests') {
             steps {
                 script {
@@ -37,6 +41,7 @@ pipeline {
             }
         }
 
+        // Stage 4: Build the Android APK.
         stage('Build APK') {
             steps {
                 script {
@@ -54,6 +59,7 @@ pipeline {
             }
         }
 
+        // Stage 5: Archive the APK file.
         stage('Archive APK') {
             steps {
                 script {
